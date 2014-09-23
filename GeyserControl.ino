@@ -14,7 +14,7 @@
 //const char *dayName[] =
 // { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}; // not used
 const char *monthName[12] =
-{"Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov" };
+{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 byte thermometer[8] = //icon for thermometer
 {
@@ -100,11 +100,9 @@ boolean bLightAutoOff = true;
 boolean backlightOn = false;
 
 // Menu:
-int totalMenuItems = 0;
 const int menuTimeout = 8000;
 unsigned long menuTime = 0;
 int menuState = 0;
-int subMenuState = 0;
 boolean changeMenu = false;
 int changeSetting = 0;
 // Put the menu items here
@@ -183,11 +181,6 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 		EEPROM.write(schemaAddress, schema);
 		EEPROM.write(spTempAddress, setpointTemperature);
 		EEPROM.write(bLightAddress, bLightAutoOff);
-	}
-
-	while (menuItems[totalMenuItems] != "")
-	{
-		totalMenuItems++;
 	}
 
 	InitialiseSdCard();
@@ -283,7 +276,7 @@ void DisplayTemperature()
 	}
 	else if (sunlightAverage < 1000)
 	{
-		lcd.print("  ");
+		lcd.print(" ");
 	}
 	lcd.print(sunlightAverage);
 	lcd.print("mW ");
@@ -309,7 +302,6 @@ void DisplayDateTime(byte line)
 
 	if(RTC.read(tm))
 	{
-		//if ((menuState == 3) && (subMenuState == 0))
 		if (tm.Hour < 10)
 			lcd.print("0");
 		lcd.print(tm.Hour);
@@ -328,7 +320,7 @@ void DisplayDateTime(byte line)
 				lcd.print("0");
 			lcd.print(tm.Day);
 			lcd.print(" ");
-			lcd.print(monthName[tm.Month]);
+			lcd.print(monthName[tm.Month - 1]);
 			lcd.print(" ");
 			lcd.print(tmYearToCalendar(tm.Year) - 2000);
 		}
@@ -347,8 +339,11 @@ void DisplayDateTime(byte line)
 
 void DisplayMenuItem()
 {
-	lcd.setCursor(0, 0);
-	lcd.print(menuItems[menuState - 1]);
+	if (menuState <= 3)
+	{
+		lcd.setCursor(0, 0);
+		lcd.print(menuItems[menuState - 1]);
+	}
 }
 
 void DisplaySetting()
@@ -374,26 +369,26 @@ void DisplaySetting()
 			lcd.print("off             ");
 		}
 	}
-	else if (menuState == 3)
+	else if (menuState >= 3)
 	{
 		DisplayDateTime(2);
-		if (subMenuState == 0)
+		if (menuState == 3)
 		{
 			lcd.setCursor(1, 1);
 		}
-		else if (subMenuState == 1)
+		else if (menuState == 4)
 		{
 			lcd.setCursor(4, 1);
 		}
-		else if (subMenuState == 2)
+		else if (menuState == 5)
 		{
 			lcd.setCursor(7, 1);
 		}
-		else if (subMenuState == 3)
+		else if (menuState == 6)
 		{
 			lcd.setCursor(9, 1);
 		}
-		else if (subMenuState == 4)
+		else if (menuState == 7)
 		{
 			lcd.setCursor(14, 1);
 		}
@@ -416,18 +411,13 @@ void DisplayStatus()
 
 void ChangeSetting()
 {
-	switch (menuState)
-	{
-		case 1:
-			ChangeSetPointTemperature(changeSetting);
-			break;
-		case 2:
-			ChangeAutoBacklightOff(!bLightAutoOff);
-			break;
-		case 3:
-			ChangeTime(changeSetting);
-			break;
-	}
+	if (menuState == 1)
+		ChangeSetPointTemperature(changeSetting);
+	else if (menuState == 2)
+		ChangeAutoBacklightOff(!bLightAutoOff);
+	else if (menuState >= 3)
+		ChangeTime(changeSetting);
+
 	DisplaySetting();
 }
 
@@ -461,74 +451,48 @@ void ChangeAutoBacklightOff(boolean value)
 
 void ChangeTime(int changeValue)
 {
-	if (changeValue < 0)
+	RTC.read(tm);
+	if (menuState == 3)
 	{
-		RTC.read(tm);
-		if (subMenuState == 0)
-		{
-			if (tm.Hour == 23)
-			{
-				tm.Hour = 0;
-			}
-			else
-			{
-				tm.Hour = tm.Hour + 1;
-			}
-		}
-		else if (subMenuState == 1)
-		{
-			if (tm.Minute == 59)
-			{
-				tm.Minute = 0;
-			}
-			else
-			{
-				tm.Minute = tm.Minute + 1;
-			}
-		}
-		else if (subMenuState == 2)
-		{
-			if (tm.Day == 31)
-			{
-				tm.Day = 1;
-			}
-			else
-			{
-				tm.Day = tm.Day + 1;
-			}
-		}
-		else if (subMenuState == 3)
-		{
-			if (tm.Month == 12)
-			{
-				tm.Month = 1;
-			}
-			else
-			{
-				tm.Month = tm.Month + 1;
-			}
-		}
-		else if (subMenuState == 4)
-		{
-			if (tm.Year == 50)
-			{
-				tm.Year = 44;
-			}
-			else
-			{
-				tm.Year = tm.Year + 1;
-			}
-		}
-		RTC.write(tm);
+		if ((tm.Hour == 0) && (changeValue < 0))
+			tm.Hour = 23;
+		else if ((tm.Hour == 23) && (changeValue > 0))
+			tm.Hour = 0;
+		else
+			tm.Hour = tm.Hour + changeValue;
 	}
-	else
+	else if (menuState == 4)
 	{
-		subMenuState++;
-		if (subMenuState == 5)
-		{
-			subMenuState = 0;
-		}
+		if ((tm.Minute == 0) && (changeValue < 0))
+			tm.Minute = 59;
+		else if ((tm.Minute == 59) && (changeValue > 0))
+			tm.Minute = 0;
+		else
+			tm.Minute = tm.Minute + changeValue;
 	}
+	else if (menuState == 5)
+	{
+		if ((tm.Day == 1) && (changeValue < 0))
+			tm.Day = 31;
+		else if ((tm.Day == 31) && (changeValue > 0))
+			tm.Day = 1;
+		else
+			tm.Day = tm.Day + changeValue;
+	}
+	else if (menuState == 6)
+	{
+		if ((tm.Month == 1) && (changeValue < 0))
+			tm.Month = 12;
+		else if ((tm.Month == 12) && (changeValue > 0))
+			tm.Month = 1;
+		else
+			tm.Month = tm.Month + changeValue;
+	}
+	else if (menuState == 7)
+	{
+		tm.Year = tm.Year + changeValue;
+	}
+	RTC.write(tm);
 }
 
 
@@ -636,10 +600,10 @@ void checkButtons()
 	{
 		if ((millis() - lastDebounceTime[i]) > debounceDelay)
 		{
-	// whatever the reading is at, it's been there for longer
-	// than the debounce delay, so take it as the actual current state:
+			// whatever the reading is at, it's been there for longer
+			// than the debounce delay, so take it as the actual current state:
 
-	// if the button state has changed:
+			// if the button state has changed:
 			if (reading[i] != buttonState[i])
 			{
 
@@ -748,7 +712,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 			menuState++;
 			DisplayMenuItem();
 			DisplaySetting();
-			if (menuState > totalMenuItems)
+			if (menuState > 7)
 			{
 				menuState = 0;
 			}
@@ -789,8 +753,11 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 
 	if ((tm.Minute % LoggingInterval == 0) && !logging)
 	{
-		logging = true;
-		Log(temperature1Average, temperature2Average, sunlightAverage);
+		if (menuState < 3) // not setting the time
+		{
+			logging = true;
+			Log(temperature1Average, temperature2Average, sunlightAverage);
+		}
 	}
 	if (!(tm.Minute % LoggingInterval == 0) && logging)
 	{
@@ -811,4 +778,3 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 	}
 }
 /* ( THE END ) */
-

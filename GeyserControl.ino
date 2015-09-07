@@ -5,11 +5,11 @@
 
 /*-----( Import needed libraries )-----*/
 #include <Wire.h>
-#include <Time.h>
-#include <DS1307RTC.h>
-#include <LiquidCrystal.h>
+#include "RTClib.h"
+#include "LiquidCrystal.h"
 #include <SD.h>
 #include <EEPROM.h>
+#include <SPI.h>
 
 //const char *dayName[] =
 // { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}; // not used
@@ -46,7 +46,7 @@ LiquidCrystal lcd(0);  // Set the LCD I2C address
 
 /*-----( Declare Constants, Pin Numbers )-----*/
 
-tmElements_t tm;
+DateTime tm;
 
 File myFile;
 
@@ -114,6 +114,8 @@ char* menuItems[] =
 	""
 };
 
+RTC_DS1307 rtc;
+
 void setup()   /*----( SETUP: RUNS ONCE )----*/
 {
 	lcd.begin(16, 2);        // initialize the lcd for 16 chars 2 lines, turn on backlight
@@ -123,33 +125,35 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 	lcd.createChar(1, thermometer);
 	lcd.createChar(2, waterDroplet);
 
-	if (!RTC.read(tm))
+	if (!rtc.isrunning())
 	{
-		if (!RTC.chipPresent())
+		/*
+if (!rtc..chipPresent())
 		{
 			lcd.setCursor(0, 0);
 			lcd.print("Clock read error");
 			delay(3000);
 		}
 		else
+*/
 		{
 			setDefaultTime();
 			lcd.setCursor(0, 0);
 			lcd.print("                ");
 			lcd.setCursor(0, 0);
 			lcd.print("Default time");
-			lcd.print(tm.Year);
+			lcd.print(tm.year());
 			delay(2000);
 		}
 	}
-	else if ((tm.Year > 50) || (tm.Year < 0))
+	else if ((tm.year() > 50) || (tm.year() < 0))
 	{
 		setDefaultTime();
 		lcd.setCursor(0, 0);
 		lcd.print("                ");
 		lcd.setCursor(0, 0);
 		lcd.print("Default time");
-		lcd.print(tm.Year);
+		lcd.print(tm.year());
 		delay(2000);
 	}
 
@@ -232,18 +236,19 @@ void SetBacklight(boolean on)
 
 void setDefaultTime()
 {
-	tm.Hour = 0;
-	tm.Minute = 0;
-	tm.Second = 0;
-	tm.Day = 1;
-	tm.Month = 1;
-	tm.Year = 2000;
-	if (!RTC.write(tm))
-	{
-		lcd.setCursor(0, 0);
-		lcd.print("Clk write error!");
-		delay(3000);
-	}
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+//	tm.Hour = 0;
+//	tm.Minute = 0;
+//	tm.Second = 0;
+//	tm.Day = 1;
+//	tm.Month = 1;
+//	tm.Year = 2000;
+//	if (!RTC.write(tm))
+//	{
+//		lcd.setCursor(0, 0);
+//		lcd.print("Clk write error!");
+//		delay(3000);
+//	}
 }
 
 void DisplayTemperature()
@@ -299,16 +304,16 @@ void DisplayDateTime(byte line)
 {
 
 	lcd.setCursor(0, line - 1);
+        
+        tm = rtc.now();
 
-	if(RTC.read(tm))
-	{
-		if (tm.Hour < 10)
+		if (tm.hour() < 10)
 			lcd.print("0");
-		lcd.print(tm.Hour);
+		lcd.print(tm.hour());
 		lcd.print(":");
-		if (tm.Minute < 10)
+		if (tm.minute() < 10)
 			lcd.print("0");
-		lcd.print(tm.Minute);
+		lcd.print(tm.minute());
 		if (line == 1)
 		{
 			lcd.print("    ");
@@ -316,25 +321,24 @@ void DisplayDateTime(byte line)
 		else
 		{
 			lcd.print(" ");
-			if (tm.Day < 10)
+			if (tm.day() < 10)
 				lcd.print("0");
-			lcd.print(tm.Day);
+			lcd.print(tm.day());
 			lcd.print(" ");
-			lcd.print(monthName[tm.Month - 1]);
+			lcd.print(monthName[tm.month() - 1]);
 			lcd.print(" ");
-			lcd.print(tmYearToCalendar(tm.Year) - 2000);
+			lcd.print(tm.year());
 		}
 
 // lcd.setCursor(12,1); // this code is used for displaying day of the week
-//  lcd.print(tm.Wday[zile-2]); //it's disabled because for some reason it doesn't work on i2c display
-	}
-	else
-	{
-		if (!RTC.chipPresent())
-		{
-			lcd.print("Clock read error!");
-		}
-	}
+//  lcd.print(tm.Wday[zile-2]); //it's disabled because for some reason it doesn't work on i2c displa
+//	else
+//	{
+//		if (!RTC.chipPresent())
+//		{
+//			lcd.print("Clock read error!");
+//		}
+//	}
 }
 
 void DisplayMenuItem()
@@ -451,48 +455,48 @@ void ChangeAutoBacklightOff(boolean value)
 
 void ChangeTime(int changeValue)
 {
-	RTC.read(tm);
+	tm = rtc.now();
+
 	if (menuState == 3)
 	{
-		if ((tm.Hour == 0) && (changeValue < 0))
-			tm.Hour = 23;
-		else if ((tm.Hour == 23) && (changeValue > 0))
-			tm.Hour = 0;
+		if ((tm.hour() == 0) && (changeValue < 0))
+			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), 23, tm.minute(), tm.second()));
+		else if ((tm.hour() == 23) && (changeValue > 0))
+			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), 0, tm.minute(), tm.second()));
 		else
-			tm.Hour = tm.Hour + changeValue;
+			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour() + changeValue, tm.minute(), tm.second()));
 	}
 	else if (menuState == 4)
 	{
-		if ((tm.Minute == 0) && (changeValue < 0))
-			tm.Minute = 59;
-		else if ((tm.Minute == 59) && (changeValue > 0))
-			tm.Minute = 0;
+		if ((tm.minute() == 0) && (changeValue < 0))
+			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour(), 59, tm.second()));
+		else if ((tm.minute() == 59) && (changeValue > 0))
+			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour(), 0, tm.second()));
 		else
-			tm.Minute = tm.Minute + changeValue;
+			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour(), tm.minute() + changeValue, tm.second()));
 	}
 	else if (menuState == 5)
 	{
-		if ((tm.Day == 1) && (changeValue < 0))
-			tm.Day = 31;
-		else if ((tm.Day == 31) && (changeValue > 0))
-			tm.Day = 1;
+		if ((tm.day() == 1) && (changeValue < 0))
+			rtc.adjust(DateTime(tm.year(), tm.month(), 31, tm.hour(), tm.minute(), tm.second()));
+		else if ((tm.day() == 31) && (changeValue > 0))
+			rtc.adjust(DateTime(tm.year(), tm.month(), 1, tm.hour(), tm.minute(), tm.second()));
 		else
-			tm.Day = tm.Day + changeValue;
+			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day() + changeValue, tm.hour(), tm.minute(), tm.second()));
 	}
 	else if (menuState == 6)
 	{
-		if ((tm.Month == 1) && (changeValue < 0))
-			tm.Month = 12;
-		else if ((tm.Month == 12) && (changeValue > 0))
-			tm.Month = 1;
+		if ((tm.month() == 1) && (changeValue < 0))
+			rtc.adjust(DateTime(tm.year(), 12, tm.day(), tm.hour(), tm.minute(), tm.second()));
+		else if ((tm.month() == 12) && (changeValue > 0))
+			rtc.adjust(DateTime(tm.year(), 1, tm.day(), tm.hour(), tm.minute(), tm.second()));
 		else
-			tm.Month = tm.Month + changeValue;
+			rtc.adjust(DateTime(tm.year(), tm.month() + changeValue, tm.day(), tm.hour(), tm.minute(), tm.second()));
 	}
 	else if (menuState == 7)
 	{
-		tm.Year = tm.Year + changeValue;
+            rtc.adjust(DateTime(tm.year() + changeValue, tm.month(), tm.day(), tm.hour(), tm.minute(), tm.second()));
 	}
-	RTC.write(tm);
 }
 
 
@@ -515,27 +519,27 @@ void Log(int geyserTemp, int ambientTemp, int solarRadiation)
 
 	if (myFile)
 	{
-		myFile.print(tmYearToCalendar(tm.Year));
+		myFile.print(tm.year());
 		myFile.print('/');
-		if (tm.Month < 10)
+		if (tm.month() < 10)
 			myFile.print("0");
-		myFile.print(tm.Month);
+		myFile.print(tm.month());
 		myFile.print('/');
-		if (tm.Day < 10)
+		if (tm.day() < 10)
 			myFile.print("0");
-		myFile.print(tm.Day);
+		myFile.print(tm.day());
 		myFile.print(' ');
-		if (tm.Hour < 10)
+		if (tm.hour() < 10)
 			myFile.print("0");
-		myFile.print(tm.Hour);
+		myFile.print(tm.hour());
 		myFile.print(':');
-		if (tm.Minute < 10)
+		if (tm.minute() < 10)
 			myFile.print("0");
-		myFile.print(tm.Minute);
+		myFile.print(tm.minute());
 		myFile.print(':');
-		if (tm.Second < 10)
+		if (tm.second() < 10)
 			myFile.print("0");
-		myFile.print(tm.Second);
+		myFile.print(tm.second());
 		myFile.print(",");
 		myFile.print(geyserTemp);
 		myFile.print(",");
@@ -751,7 +755,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 	}
 
 
-	if ((tm.Minute % LoggingInterval == 0) && !logging)
+	if ((tm.minute() % LoggingInterval == 0) && !logging)
 	{
 		if (menuState < 3) // not setting the time
 		{
@@ -759,7 +763,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 			Log(temperature1Average, temperature2Average, sunlightAverage);
 		}
 	}
-	if (!(tm.Minute % LoggingInterval == 0) && logging)
+	if (!(tm.minute() % LoggingInterval == 0) && logging)
 	{
 		logging = false;
 	}

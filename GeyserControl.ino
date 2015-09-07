@@ -9,7 +9,6 @@
 #include "LiquidCrystal.h"
 #include <SD.h>
 #include <EEPROM.h>
-#include <SPI.h>
 
 //const char *dayName[] =
 // { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}; // not used
@@ -120,7 +119,6 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 {
 	lcd.begin(16, 2);        // initialize the lcd for 16 chars 2 lines, turn on backlight
 	SetBacklight(true);
-//SetBacklight(false);
 	lcd.clear();
 	lcd.createChar(1, thermometer);
 	lcd.createChar(2, waterDroplet);

@@ -74,6 +74,8 @@ int index = 0;
 int temperature1Average;
 int temperature2Average;
 int sunlightAverage;
+int P1On;
+int P1Off;
 unsigned long readingTime = 0;
 
 #define minSetpoint 20
@@ -91,6 +93,10 @@ long overrideTime = 1600;
 const int schemaAddress = 3;
 const int spTempAddress = 0;
 const int bLightAddress = 1;
+const int P1OnAddress = 4;
+const int P1OffAddress = 5;
+const int P2OnAddress = 6;
+const int P2OffAddress = 7;
 
 // BackLight control:
 #define bLightTimeout 20000
@@ -110,7 +116,8 @@ char* menuItems[] =
 	"Max temperature:",
 	"BLight auto off:",
 	"Date and time:  ",
-	""
+	"P1 on:          ",
+	"P2 on:          ",
 };
 
 RTC_DS1307 rtc;
@@ -122,38 +129,6 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 	lcd.clear();
 	lcd.createChar(1, thermometer);
 	lcd.createChar(2, waterDroplet);
-
-	if (!rtc.isrunning())
-	{
-		/*
-if (!rtc..chipPresent())
-		{
-			lcd.setCursor(0, 0);
-			lcd.print("Clock read error");
-			delay(3000);
-		}
-		else
-*/
-		{
-			setDefaultTime();
-			lcd.setCursor(0, 0);
-			lcd.print("                ");
-			lcd.setCursor(0, 0);
-			lcd.print("Default time");
-			lcd.print(tm.year());
-			delay(2000);
-		}
-	}
-	else if ((tm.year() > 50) || (tm.year() < 0))
-	{
-		setDefaultTime();
-		lcd.setCursor(0, 0);
-		lcd.print("                ");
-		lcd.setCursor(0, 0);
-		lcd.print("Default time");
-		lcd.print(tm.year());
-		delay(2000);
-	}
 
 	//buttons:
 	pinMode(buttons[0], INPUT);
@@ -175,6 +150,8 @@ if (!rtc..chipPresent())
 		setpointTemperature = EEPROM.read(spTempAddress);
 		// Backlight control:
 		bLightAutoOff = EEPROM.read(bLightAddress) == 1;
+                P1On = EEPROM.read(P1OnAddress);
+                P1Off = EEPROM.read(P1Off);
 	}
 	else
 	{
@@ -230,23 +207,6 @@ void SetBacklight(boolean on)
 	}
 
 	backlightOn = on;
-}
-
-void setDefaultTime()
-{
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-//	tm.Hour = 0;
-//	tm.Minute = 0;
-//	tm.Second = 0;
-//	tm.Day = 1;
-//	tm.Month = 1;
-//	tm.Year = 2000;
-//	if (!RTC.write(tm))
-//	{
-//		lcd.setCursor(0, 0);
-//		lcd.print("Clk write error!");
-//		delay(3000);
-//	}
 }
 
 void DisplayTemperature()
@@ -305,9 +265,12 @@ void DisplayDateTime(byte line)
         
         tm = rtc.now();
 
-		if (tm.hour() < 10)
+                if (menuState < 7)
+                {
+		  if (tm.hour() < 10)
 			lcd.print("0");
-		lcd.print(tm.hour());
+		  lcd.print(tm.hour());
+                }
 		lcd.print(":");
 		if (tm.minute() < 10)
 			lcd.print("0");
@@ -318,7 +281,7 @@ void DisplayDateTime(byte line)
 		}
 		else
 		{
-			lcd.print(" ");
+                        lcd.print(" ");
 			if (tm.day() < 10)
 				lcd.print("0");
 			lcd.print(tm.day());
@@ -326,26 +289,21 @@ void DisplayDateTime(byte line)
 			lcd.print(monthName[tm.month() - 1]);
 			lcd.print(" ");
 			lcd.print(tm.year());
+                        lcd.print(" ");
 		}
-
-// lcd.setCursor(12,1); // this code is used for displaying day of the week
-//  lcd.print(tm.Wday[zile-2]); //it's disabled because for some reason it doesn't work on i2c displa
-//	else
-//	{
-//		if (!RTC.chipPresent())
-//		{
-//			lcd.print("Clock read error!");
-//		}
-//	}
 }
 
 void DisplayMenuItem()
 {
+        lcd.setCursor(0, 0);
 	if (menuState <= 3)
 	{
-		lcd.setCursor(0, 0);
 		lcd.print(menuItems[menuState - 1]);
 	}
+        else if (menuState == 8)
+        {
+                lcd.print(menuItems[3]);
+        }
 }
 
 void DisplaySetting()
@@ -371,7 +329,7 @@ void DisplaySetting()
 			lcd.print("off             ");
 		}
 	}
-	else if (menuState >= 3)
+	else if ((menuState >= 3) && (menuState < 8))
 	{
 		DisplayDateTime(2);
 		if (menuState == 3)
@@ -396,6 +354,15 @@ void DisplaySetting()
 		}
 		lcd.blink();
 	}
+        else if (menuState == 8)
+        {
+           lcd.setCursor(0, 1);
+           lcd.print("P1 off: ");
+           lcd.print(P1Off);
+           lcd.setCursor(0, 0);
+           lcd.print("P1 on: ");
+           lcd.print(P1On);
+        }
 }
 
 void DisplayStatus()
@@ -417,8 +384,10 @@ void ChangeSetting()
 		ChangeSetPointTemperature(changeSetting);
 	else if (menuState == 2)
 		ChangeAutoBacklightOff(!bLightAutoOff);
-	else if (menuState >= 3)
+	else if ((menuState >= 3) && (menuState < 8))
 		ChangeTime(changeSetting);
+        else if (menuState == 8)
+                ChangeP1On(changeSetting);
 
 	DisplaySetting();
 }
@@ -495,6 +464,12 @@ void ChangeTime(int changeValue)
 	{
             rtc.adjust(DateTime(tm.year() + changeValue, tm.month(), tm.day(), tm.hour(), tm.minute(), tm.second()));
 	}
+}
+
+void ChangeP1On(int changeValue)
+{
+	P1On = P1On + changeValue;
+	EEPROM.write(P1OnAddress, P1On);
 }
 
 
@@ -714,7 +689,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 			menuState++;
 			DisplayMenuItem();
 			DisplaySetting();
-			if (menuState > 7)
+			if (menuState > 8)
 			{
 				menuState = 0;
 			}

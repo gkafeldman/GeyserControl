@@ -76,6 +76,8 @@ int temperature2Average;
 int sunlightAverage;
 int P1On;
 int P1Off;
+int P2On;
+int P2Off;
 unsigned long readingTime = 0;
 
 #define minSetpoint 20
@@ -115,9 +117,7 @@ char* menuItems[] =
 {
 	"Max temperature:",
 	"BLight auto off:",
-	"Date and time:  ",
-	"P1 on:          ",
-	"P2 on:          ",
+	"Date and time:  "
 };
 
 RTC_DS1307 rtc;
@@ -300,10 +300,7 @@ void DisplayMenuItem()
 	{
 		lcd.print(menuItems[menuState - 1]);
 	}
-        else if (menuState == 8)
-        {
-                lcd.print(menuItems[3]);
-        }
+        // For setting P1On, P1Off, P2On and P2Off I don't use the menu index
 }
 
 void DisplaySetting()
@@ -333,35 +330,56 @@ void DisplaySetting()
 	{
 		DisplayDateTime(2);
 		if (menuState == 3)
-		{
 			lcd.setCursor(1, 1);
-		}
 		else if (menuState == 4)
-		{
 			lcd.setCursor(4, 1);
-		}
 		else if (menuState == 5)
-		{
 			lcd.setCursor(7, 1);
-		}
 		else if (menuState == 6)
-		{
 			lcd.setCursor(9, 1);
-		}
 		else if (menuState == 7)
-		{
 			lcd.setCursor(14, 1);
-		}
 		lcd.blink();
 	}
-        else if (menuState == 8)
+        else if ((menuState >= 8) && (menuState < 12))
         {
-           lcd.setCursor(0, 1);
-           lcd.print("P1 off: ");
-           lcd.print(P1Off);
            lcd.setCursor(0, 0);
            lcd.print("P1 on: ");
-           lcd.print(P1On);
+           lcd.print(GetTime(P1On));
+           lcd.print("    ");
+           lcd.setCursor(0, 1);
+           lcd.print("P1 off: ");
+           lcd.print(GetTime(P1Off));
+           lcd.print("   ");
+           if (menuState == 8)
+             lcd.setCursor(8, 0);
+           else if (menuState == 9)
+             lcd.setCursor(11, 0);
+           else if (menuState == 10)
+             lcd.setCursor(9, 1);
+           else if (menuState == 11)
+             lcd.setCursor(12, 1);
+           lcd.blink();
+        }
+        else
+        {
+           lcd.setCursor(0, 0);
+           lcd.print("P2 on: ");
+           lcd.print(GetTime(P2On));
+           lcd.print("    ");
+           lcd.setCursor(0, 1);
+           lcd.print("P2 off: ");
+           lcd.print(GetTime(P2Off));
+           lcd.print("   ");
+           if (menuState == 12)
+             lcd.setCursor(8, 0);
+           else if (menuState == 13)
+             lcd.setCursor(11, 0);
+           else if (menuState == 14)
+             lcd.setCursor(9, 1);
+           else if (menuState == 15)
+             lcd.setCursor(12, 1);
+           lcd.blink();
         }
 }
 
@@ -383,19 +401,43 @@ void ChangeSetting()
 	if (menuState == 1)
 		ChangeSetPointTemperature(changeSetting);
 	else if (menuState == 2)
-		ChangeAutoBacklightOff(!bLightAutoOff);
+		bLightAutoOff = !bLightAutoOff;
 	else if ((menuState >= 3) && (menuState < 8))
 		ChangeTime(changeSetting);
         else if (menuState == 8)
-                ChangeP1On(changeSetting);
+                P1On = ChangePeriodTime(P1On, changeSetting*60); // changing hours
+        else if (menuState == 9)
+                P1On = ChangePeriodTime(P1On, changeSetting);    // changing minutes
+        else if (menuState == 10)
+                P1Off = ChangePeriodTime(P1Off, changeSetting*60);
+        else if (menuState == 11)
+                P1Off = ChangePeriodTime(P1Off, changeSetting);
+        else if (menuState == 12)
+                P2On = ChangePeriodTime(P2On, changeSetting*60);
+        else if (menuState == 13)
+                P2On = ChangePeriodTime(P2On, changeSetting);
+        else if (menuState == 14)
+                P2Off = ChangePeriodTime(P2Off, changeSetting*60);
+        else if (menuState == 15)
+                P2Off = ChangePeriodTime(P2Off, changeSetting);
 
-	DisplaySetting();
+}
+
+void SaveSettings()
+{
+	EEPROM.write(spTempAddress, setpointTemperature);
+	EEPROM.write(bLightAddress, (int)bLightAutoOff);
+        EEPROM.write(P1OnAddress, P1On);
+        EEPROM.write(P1OffAddress, P1Off);
+        EEPROM.write(P2OnAddress, P2On);
+        EEPROM.write(P2OffAddress, P2Off);
 }
 
 void ChangeSetPointTemperature(int changeValue)
 {
-	setpointTemperature = setpointTemperature + changeValue;
 	cooling = false;
+
+	setpointTemperature = setpointTemperature + changeValue;
 	if (setpointTemperature <= minSetpoint)
 	{
 		setpointTemperature = minSetpoint;
@@ -403,20 +445,6 @@ void ChangeSetPointTemperature(int changeValue)
 	else if (setpointTemperature >= maxSetpoint)
 	{
 		setpointTemperature = maxSetpoint;
-	}
-	EEPROM.write(spTempAddress, setpointTemperature);
-}
-
-void ChangeAutoBacklightOff(boolean value)
-{
-	bLightAutoOff = value;
-	if (bLightAutoOff)
-	{
-		EEPROM.write(bLightAddress, 1);
-	}
-	else
-	{
-		EEPROM.write(bLightAddress, 0);
 	}
 }
 
@@ -466,12 +494,35 @@ void ChangeTime(int changeValue)
 	}
 }
 
-void ChangeP1On(int changeValue)
+int ChangePeriodTime(int oldTime, int changeValue)
 {
-	P1On = P1On + changeValue;
-	EEPROM.write(P1OnAddress, P1On);
+	int newValue = oldTime + changeValue;
+
+        if (newValue >= 1440)
+          return newValue - 1440;
+        else if (newValue <= -1)
+          return 1440 + newValue;
+        else
+          return newValue;  
 }
 
+String GetTime(int time)
+{
+  int hours = time/60;
+  String result = String(hours);
+  
+  if (hours < 10)
+    result = "0" + result;
+    
+  int minutes = time%60;
+  
+  if (minutes < 10)
+    result = result + ":0" + String(minutes);
+  else
+     result = result + ":" + String(minutes); 
+    
+  return result;
+}
 
 int GetTemperature(int channel)
 {
@@ -689,7 +740,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 			menuState++;
 			DisplayMenuItem();
 			DisplaySetting();
-			if (menuState > 8)
+			if (menuState > 15)
 			{
 				menuState = 0;
 			}
@@ -698,6 +749,9 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 	else if ((menuState > 0) && (changeSetting != 0))
 	{
 		ChangeSetting();
+        	DisplaySetting();
+                SaveSettings();
+
 		changeSetting = 0;
 	}
 

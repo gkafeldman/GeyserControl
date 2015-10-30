@@ -57,7 +57,7 @@ byte lastButtonState[NUMBUTTONS] = {LOW, LOW, LOW};   // the previous reading fr
 // will quickly become a bigger number than can be stored in an int.
 long lastDebounceTime[NUMBUTTONS] = {0, 0, 0};  // the last time the output pin was toggled
 long debounceDelay = 50;    // the debounce time; increase if the output flickers
-boolean button1down = true;
+boolean button1down = false;
 long button1counter = 0;
 
 boolean logging = false;
@@ -252,7 +252,8 @@ void DisplayTemperature()
 	{
 		lcd.print(" ");
 	}
-	lcd.print(temperature2Average);
+	//lcd.print(temperature2Average);
+        lcd.print(setpointTemperature);
 
 	lcd.print((char)223); //degree sign
 	lcd.print("C ");
@@ -386,7 +387,11 @@ void DisplaySetting()
 void DisplayStatus()
 {
 	lcd.setCursor(0, 1);
-	if (elementOn)
+        if (override)
+        {
+                lcd.print("OVR ");
+        }
+	else if (elementOn)
 	{
 		lcd.print("ON  ");
 	}
@@ -634,41 +639,39 @@ void checkButtons()
 			// if the button state has changed:
 			if (reading[i] != buttonState[i])
 			{
-
+                                
+                                SetBacklight(true);
+                                
 				buttonState[i] = reading[i];
 
 				menuTime = millis();
 
-				if ((!backlightOn) && (buttonState[0] == HIGH))
+				if (buttonState[0] == HIGH)
 				{
-					SetBacklight(true);
+					button1down = true;
 				}
-				else
+				else if ((buttonState[0] == LOW) && button1down)
 				{
-					if (buttonState[0] == HIGH)
-					{
-						button1down = true;
-					}
-					else if ((buttonState[0] == LOW) && button1down)
-					{
-						button1down = false;
-						changeMenu = !overrideDetected;
-						overrideDetected = false;
-						SetBacklight(true);
-					}
-				}
+					button1down = false;
+                                        if (overrideDetected)
+                                        {
+                                           overrideDetected = false;
+                                        }
+                                        else
+                                        {
+					  changeMenu = true;
+                                        }
+			        }
 
 
 				if (buttonState[1] == HIGH)
 				{
 					changeSetting = 1;
-					SetBacklight(true);
 				}
 
 				if (buttonState[2] == HIGH)
 				{
 					changeSetting = -1;
-					SetBacklight(true);
 				}
 
 				bLightTime = millis();
@@ -757,30 +760,39 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 
 	checkButtons();
 
-	if (override || (cooling && (temperature1Average < (setpointTemperature - 6))))
-	{
-		elementOn = true;
-		cooling = false;
-		digitalWrite(5, HIGH);
-	}
-	else if (override || (!cooling && (temperature1Average < setpointTemperature)))
-	{
-		elementOn = true;
-		cooling = false;
-		digitalWrite(5, HIGH);
-	}
-	else if (temperature1Average >= setpointTemperature)
-	{
+	if (override)
+        {
+            elementOn = true;
+            digitalWrite(5, HIGH);
+        }
+        else
+        {
+            //if (cooling && (temperature1Average < (setpointTemperature - 6)))
+	    //{
+	//	elementOn = true;
+	//	cooling = false;
+	//	digitalWrite(5, HIGH);
+	  //  }
+	    //else if (!cooling && (temperature1Average < setpointTemperature))
+	    //{
+		//elementOn = true;
+		//cooling = false;
+		//digitalWrite(5, HIGH);
+	    //}
+            
+            if (temperature1Average >= setpointTemperature)
+	    {
 		elementOn = false;
 		cooling = true;
 		digitalWrite(5, LOW);
-	}
-	else
-	{
-		elementOn = false;
-		digitalWrite(5, LOW);
-	}
-
+	    }
+            else
+            {
+                elementOn = true;
+                cooling = false;
+                digitalWrite(5, HIGH);
+            }
+        }
 
 	if ((tm.minute() % LoggingInterval == 0) && !logging)
 	{

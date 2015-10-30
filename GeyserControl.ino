@@ -104,7 +104,6 @@ const int P2OffAddress = 7;
 #define bLightTimeout 20000
 unsigned long bLightTime = 0;
 boolean bLightAutoOff = true;
-boolean backlightOn = false;
 
 // Menu:
 const int menuTimeout = 8000;
@@ -205,8 +204,6 @@ void SetBacklight(boolean on)
 	{
 		lcd.setBacklight(LOW);
 	}
-
-	backlightOn = on;
 }
 
 void DisplayTemperature()
@@ -738,15 +735,12 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 	{
 		changeMenu = false;
 
-		if (backlightOn)
+		menuState++;
+		DisplayMenuItem();
+		DisplaySetting();
+		if (menuState > 15)
 		{
-			menuState++;
-			DisplayMenuItem();
-			DisplaySetting();
-			if (menuState > 15)
-			{
-				menuState = 0;
-			}
+			menuState = 0;
 		}
 	}
 	else if ((menuState > 0) && (changeSetting != 0))

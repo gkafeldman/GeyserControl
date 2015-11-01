@@ -124,7 +124,7 @@ RTC_DS1307 rtc;
 void setup()   /*----( SETUP: RUNS ONCE )----*/
 {
 	lcd.begin(16, 2);        // initialize the lcd for 16 chars 2 lines, turn on backlight
-	SetBacklight(true);
+	lcd.setBacklight(HIGH);
 	lcd.clear();
 	lcd.createChar(1, thermometer);
 	lcd.createChar(2, waterDroplet);
@@ -194,18 +194,6 @@ void InitialiseSdCard()
 	}
 }
 
-void SetBacklight(boolean on)
-{
-	if (on)
-	{
-		lcd.setBacklight(HIGH);
-	}
-	else
-	{
-		lcd.setBacklight(LOW);
-	}
-}
-
 void DisplayTemperature()
 {
 	lcd.noBlink();
@@ -256,23 +244,22 @@ void DisplayTemperature()
 	lcd.print("C ");
 }
 
-void DisplayDateTime(byte line)
+void DisplayDateTime(byte line, DateTime time)
 {
 
 	lcd.setCursor(0, line - 1);
         
-        tm = rtc.now();
 
                 if (menuState < 7)
                 {
-		  if (tm.hour() < 10)
+		  if (time.hour() < 10)
 			lcd.print("0");
-		  lcd.print(tm.hour());
+		  lcd.print(time.hour());
                 }
 		lcd.print(":");
-		if (tm.minute() < 10)
+		if (time.minute() < 10)
 			lcd.print("0");
-		lcd.print(tm.minute());
+		lcd.print(time.minute());
 		if (line == 1)
 		{
 			lcd.print("    ");
@@ -280,13 +267,13 @@ void DisplayDateTime(byte line)
 		else
 		{
                         lcd.print(" ");
-			if (tm.day() < 10)
+			if (time.day() < 10)
 				lcd.print("0");
-			lcd.print(tm.day());
+			lcd.print(time.day());
 			lcd.print(" ");
-			lcd.print(monthName[tm.month() - 1]);
+			lcd.print(monthName[time.month() - 1]);
 			lcd.print(" ");
-			lcd.print(tm.year());
+			lcd.print(time.year());
                         lcd.print(" ");
 		}
 }
@@ -326,7 +313,8 @@ void DisplaySetting()
 	}
 	else if ((menuState >= 3) && (menuState < 8))
 	{
-		DisplayDateTime(2);
+                DateTime t = rtc.now();
+		DisplayDateTime(2, t);
 		if (menuState == 3)
 			lcd.setCursor(1, 1);
 		else if (menuState == 4)
@@ -637,7 +625,7 @@ void checkButtons()
 			if (reading[i] != buttonState[i])
 			{
                                 
-                                SetBacklight(true);
+                                lcd.setBacklight(HIGH);
                                 
 				buttonState[i] = reading[i];
 
@@ -686,7 +674,9 @@ void checkButtons()
 
 void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 {
-	if (((millis() - readingTime) > 1000) || (readingTime > millis()))
+        DateTime tm = rtc.now();
+        
+        if (((millis() - readingTime) > 1000) || (readingTime > millis()))
 	{
 		// subtract the last reading:
 		temperature1Total = temperature1Total - temperature1[index];
@@ -715,12 +705,12 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 
 		if (menuState == 0)
 		{
-			DisplayDateTime(1);
+			DisplayDateTime(1, tm);
 			DisplayTemperature();
 			DisplayStatus();
 		}
 	}
-
+                
 	if (((millis() - menuTime) > menuTimeout) || (menuTime > millis()))
 	{
 		menuState = 0;
@@ -728,7 +718,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 
 	if (bLightAutoOff && (((millis() - bLightTime) > bLightTimeout) || (bLightTime > millis())))
 	{
-		SetBacklight(false);
+		lcd.setBacklight(LOW);
 	}
 
 	if (changeMenu)
@@ -774,13 +764,16 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 		//digitalWrite(5, HIGH);
 	    //}
             
+            
+            int timeNow = tm.hour()*60 + tm.minute();
+
             if (temperature1Average >= setpointTemperature)
 	    {
 		elementOn = false;
 		cooling = true;
 		digitalWrite(5, LOW);
 	    }
-            else
+            else if ((P1On <= timeNow) && (P1Off > timeNow))// || ((P2On <= timeNow) && (P2Off > timeNow)))
             {
                 elementOn = true;
                 cooling = false;

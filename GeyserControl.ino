@@ -529,7 +529,7 @@ void ElementOn(boolean on)
 	}
 }
 
-void SwithOnIfUnderTemp(int temperature, int setpoint)
+void SwitchOnIfUnderTemp(int temperature, int setpoint)
 {
 	if (temperature < setpoint)
 	{

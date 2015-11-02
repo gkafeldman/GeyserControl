@@ -1,6 +1,6 @@
 /*
-   Temperature Sensor
-   Displayed on I2C LCD Display
+Temperature Sensor
+Displayed on I2C LCD Display
 */
 
 /*-----( Import needed libraries )-----*/
@@ -149,8 +149,8 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 		setpointTemperature = EEPROM.read(spTempAddress);
 		// Backlight control:
 		bLightAutoOff = EEPROM.read(bLightAddress) == 1;
-                P1On = EEPROM.read(P1OnAddress);
-                P1Off = EEPROM.read(P1Off);
+		P1On = EEPROM.read(P1OnAddress);
+		P1Off = EEPROM.read(P1Off);
 	}
 	else
 	{
@@ -238,7 +238,7 @@ void DisplayTemperature()
 		lcd.print(" ");
 	}
 	//lcd.print(temperature2Average);
-        lcd.print(setpointTemperature);
+	lcd.print(setpointTemperature);
 
 	lcd.print((char)223); //degree sign
 	lcd.print("C ");
@@ -248,44 +248,44 @@ void DisplayDateTime(byte line, DateTime time)
 {
 
 	lcd.setCursor(0, line - 1);
-        
+	
 
-                if (menuState < 7)
-                {
-		  if (time.hour() < 10)
-			lcd.print("0");
-		  lcd.print(time.hour());
-                }
-		lcd.print(":");
-		if (time.minute() < 10)
-			lcd.print("0");
-		lcd.print(time.minute());
-		if (line == 1)
-		{
-			lcd.print("    ");
-		}
-		else
-		{
-                        lcd.print(" ");
-			if (time.day() < 10)
-				lcd.print("0");
-			lcd.print(time.day());
-			lcd.print(" ");
-			lcd.print(monthName[time.month() - 1]);
-			lcd.print(" ");
-			lcd.print(time.year());
-                        lcd.print(" ");
-		}
+	if (menuState < 7)
+	{
+		if (time.hour() < 10)
+		lcd.print("0");
+		lcd.print(time.hour());
+	}
+	lcd.print(":");
+	if (time.minute() < 10)
+	lcd.print("0");
+	lcd.print(time.minute());
+	if (line == 1)
+	{
+		lcd.print("    ");
+	}
+	else
+	{
+		lcd.print(" ");
+		if (time.day() < 10)
+		lcd.print("0");
+		lcd.print(time.day());
+		lcd.print(" ");
+		lcd.print(monthName[time.month() - 1]);
+		lcd.print(" ");
+		lcd.print(time.year());
+		lcd.print(" ");
+	}
 }
 
 void DisplayMenuItem()
 {
-        lcd.setCursor(0, 0);
+	lcd.setCursor(0, 0);
 	if (menuState <= 3)
 	{
 		lcd.print(menuItems[menuState - 1]);
 	}
-        // For setting P1On, P1Off, P2On and P2Off I don't use the menu index
+	// For setting P1On, P1Off, P2On and P2Off I don't use the menu index
 }
 
 void DisplaySetting()
@@ -313,69 +313,69 @@ void DisplaySetting()
 	}
 	else if ((menuState >= 3) && (menuState < 8))
 	{
-                DateTime t = rtc.now();
+		DateTime t = rtc.now();
 		DisplayDateTime(2, t);
 		if (menuState == 3)
-			lcd.setCursor(1, 1);
+		lcd.setCursor(1, 1);
 		else if (menuState == 4)
-			lcd.setCursor(4, 1);
+		lcd.setCursor(4, 1);
 		else if (menuState == 5)
-			lcd.setCursor(7, 1);
+		lcd.setCursor(7, 1);
 		else if (menuState == 6)
-			lcd.setCursor(9, 1);
+		lcd.setCursor(9, 1);
 		else if (menuState == 7)
-			lcd.setCursor(14, 1);
+		lcd.setCursor(14, 1);
 		lcd.blink();
 	}
-        else if ((menuState >= 8) && (menuState < 12))
-        {
-           lcd.setCursor(0, 0);
-           lcd.print("P1 on: ");
-           lcd.print(GetTime(P1On));
-           lcd.print("    ");
-           lcd.setCursor(0, 1);
-           lcd.print("P1 off: ");
-           lcd.print(GetTime(P1Off));
-           lcd.print("   ");
-           if (menuState == 8)
-             lcd.setCursor(8, 0);
-           else if (menuState == 9)
-             lcd.setCursor(11, 0);
-           else if (menuState == 10)
-             lcd.setCursor(9, 1);
-           else if (menuState == 11)
-             lcd.setCursor(12, 1);
-           lcd.blink();
-        }
-        else
-        {
-           lcd.setCursor(0, 0);
-           lcd.print("P2 on: ");
-           lcd.print(GetTime(P2On));
-           lcd.print("    ");
-           lcd.setCursor(0, 1);
-           lcd.print("P2 off: ");
-           lcd.print(GetTime(P2Off));
-           lcd.print("   ");
-           if (menuState == 12)
-             lcd.setCursor(8, 0);
-           else if (menuState == 13)
-             lcd.setCursor(11, 0);
-           else if (menuState == 14)
-             lcd.setCursor(9, 1);
-           else if (menuState == 15)
-             lcd.setCursor(12, 1);
-           lcd.blink();
-        }
+	else if ((menuState >= 8) && (menuState < 12))
+	{
+		lcd.setCursor(0, 0);
+		lcd.print("P1 on: ");
+		lcd.print(GetTime(P1On));
+		lcd.print("    ");
+		lcd.setCursor(0, 1);
+		lcd.print("P1 off: ");
+		lcd.print(GetTime(P1Off));
+		lcd.print("   ");
+		if (menuState == 8)
+		lcd.setCursor(8, 0);
+		else if (menuState == 9)
+		lcd.setCursor(11, 0);
+		else if (menuState == 10)
+		lcd.setCursor(9, 1);
+		else if (menuState == 11)
+		lcd.setCursor(12, 1);
+		lcd.blink();
+	}
+	else
+	{
+		lcd.setCursor(0, 0);
+		lcd.print("P2 on: ");
+		lcd.print(GetTime(P2On));
+		lcd.print("    ");
+		lcd.setCursor(0, 1);
+		lcd.print("P2 off: ");
+		lcd.print(GetTime(P2Off));
+		lcd.print("   ");
+		if (menuState == 12)
+		lcd.setCursor(8, 0);
+		else if (menuState == 13)
+		lcd.setCursor(11, 0);
+		else if (menuState == 14)
+		lcd.setCursor(9, 1);
+		else if (menuState == 15)
+		lcd.setCursor(12, 1);
+		lcd.blink();
+	}
 }
 
 void DisplayStatus()
 {
 	lcd.setCursor(0, 1);
-        if (override)
-        {
-                lcd.print("OVR ");
-        }
+	if (override)
+	{
+		lcd.print("OVR ");
+	}
 	else if (elementOn)
 	{
 		lcd.print("ON  ");
@@ -389,27 +389,27 @@ void DisplayStatus()
 void ChangeSetting()
 {
 	if (menuState == 1)
-		ChangeSetPointTemperature(changeSetting);
+	ChangeSetPointTemperature(changeSetting);
 	else if (menuState == 2)
-		bLightAutoOff = !bLightAutoOff;
+	bLightAutoOff = !bLightAutoOff;
 	else if ((menuState >= 3) && (menuState < 8))
-		ChangeTime(changeSetting);
-        else if (menuState == 8)
-                P1On = ChangePeriodTime(P1On, changeSetting*60); // changing hours
-        else if (menuState == 9)
-                P1On = ChangePeriodTime(P1On, changeSetting);    // changing minutes
-        else if (menuState == 10)
-                P1Off = ChangePeriodTime(P1Off, changeSetting*60);
-        else if (menuState == 11)
-                P1Off = ChangePeriodTime(P1Off, changeSetting);
-        else if (menuState == 12)
-                P2On = ChangePeriodTime(P2On, changeSetting*60);
-        else if (menuState == 13)
-                P2On = ChangePeriodTime(P2On, changeSetting);
-        else if (menuState == 14)
-                P2Off = ChangePeriodTime(P2Off, changeSetting*60);
-        else if (menuState == 15)
-                P2Off = ChangePeriodTime(P2Off, changeSetting);
+	ChangeTime(changeSetting);
+	else if (menuState == 8)
+	P1On = ChangePeriodTime(P1On, changeSetting*60); // changing hours
+	else if (menuState == 9)
+	P1On = ChangePeriodTime(P1On, changeSetting);    // changing minutes
+	else if (menuState == 10)
+	P1Off = ChangePeriodTime(P1Off, changeSetting*60);
+	else if (menuState == 11)
+	P1Off = ChangePeriodTime(P1Off, changeSetting);
+	else if (menuState == 12)
+	P2On = ChangePeriodTime(P2On, changeSetting*60);
+	else if (menuState == 13)
+	P2On = ChangePeriodTime(P2On, changeSetting);
+	else if (menuState == 14)
+	P2Off = ChangePeriodTime(P2Off, changeSetting*60);
+	else if (menuState == 15)
+	P2Off = ChangePeriodTime(P2Off, changeSetting);
 
 }
 
@@ -417,10 +417,10 @@ void SaveSettings()
 {
 	EEPROM.write(spTempAddress, setpointTemperature);
 	EEPROM.write(bLightAddress, (int)bLightAutoOff);
-        EEPROM.write(P1OnAddress, P1On);
-        EEPROM.write(P1OffAddress, P1Off);
-        EEPROM.write(P2OnAddress, P2On);
-        EEPROM.write(P2OffAddress, P2Off);
+	EEPROM.write(P1OnAddress, P1On);
+	EEPROM.write(P1OffAddress, P1Off);
+	EEPROM.write(P2OnAddress, P2On);
+	EEPROM.write(P2OffAddress, P2Off);
 }
 
 void ChangeSetPointTemperature(int changeValue)
@@ -445,42 +445,42 @@ void ChangeTime(int changeValue)
 	if (menuState == 3)
 	{
 		if ((tm.hour() == 0) && (changeValue < 0))
-			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), 23, tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), 23, tm.minute(), tm.second()));
 		else if ((tm.hour() == 23) && (changeValue > 0))
-			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), 0, tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), 0, tm.minute(), tm.second()));
 		else
-			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour() + changeValue, tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour() + changeValue, tm.minute(), tm.second()));
 	}
 	else if (menuState == 4)
 	{
 		if ((tm.minute() == 0) && (changeValue < 0))
-			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour(), 59, tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour(), 59, tm.second()));
 		else if ((tm.minute() == 59) && (changeValue > 0))
-			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour(), 0, tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour(), 0, tm.second()));
 		else
-			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour(), tm.minute() + changeValue, tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month(), tm.day(), tm.hour(), tm.minute() + changeValue, tm.second()));
 	}
 	else if (menuState == 5)
 	{
 		if ((tm.day() == 1) && (changeValue < 0))
-			rtc.adjust(DateTime(tm.year(), tm.month(), 31, tm.hour(), tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month(), 31, tm.hour(), tm.minute(), tm.second()));
 		else if ((tm.day() == 31) && (changeValue > 0))
-			rtc.adjust(DateTime(tm.year(), tm.month(), 1, tm.hour(), tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month(), 1, tm.hour(), tm.minute(), tm.second()));
 		else
-			rtc.adjust(DateTime(tm.year(), tm.month(), tm.day() + changeValue, tm.hour(), tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month(), tm.day() + changeValue, tm.hour(), tm.minute(), tm.second()));
 	}
 	else if (menuState == 6)
 	{
 		if ((tm.month() == 1) && (changeValue < 0))
-			rtc.adjust(DateTime(tm.year(), 12, tm.day(), tm.hour(), tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year(), 12, tm.day(), tm.hour(), tm.minute(), tm.second()));
 		else if ((tm.month() == 12) && (changeValue > 0))
-			rtc.adjust(DateTime(tm.year(), 1, tm.day(), tm.hour(), tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year(), 1, tm.day(), tm.hour(), tm.minute(), tm.second()));
 		else
-			rtc.adjust(DateTime(tm.year(), tm.month() + changeValue, tm.day(), tm.hour(), tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year(), tm.month() + changeValue, tm.day(), tm.hour(), tm.minute(), tm.second()));
 	}
 	else if (menuState == 7)
 	{
-            rtc.adjust(DateTime(tm.year() + changeValue, tm.month(), tm.day(), tm.hour(), tm.minute(), tm.second()));
+		rtc.adjust(DateTime(tm.year() + changeValue, tm.month(), tm.day(), tm.hour(), tm.minute(), tm.second()));
 	}
 }
 
@@ -488,39 +488,85 @@ int ChangePeriodTime(int oldTime, int changeValue)
 {
 	int newValue = oldTime + changeValue;
 
-        if (newValue >= 1440)
-          return newValue - 1440;
-        else if (newValue <= -1)
-          return 1440 + newValue;
-        else
-          return newValue;  
+	if (newValue >= 1440)
+	return newValue - 1440;
+	else if (newValue <= -1)
+	return 1440 + newValue;
+	else
+	return newValue;  
 }
 
 String GetTime(int time)
 {
-  int hours = time/60;
-  String result = String(hours);
-  
-  if (hours < 10)
-    result = "0" + result;
-    
-  int minutes = time%60;
-  
-  if (minutes < 10)
-    result = result + ":0" + String(minutes);
-  else
-     result = result + ":" + String(minutes); 
-    
-  return result;
+	int hours = time/60;
+	String result = String(hours);
+
+	if (hours < 10)
+	result = "0" + result;
+	
+	int minutes = time%60;
+
+	if (minutes < 10)
+	result = result + ":0" + String(minutes);
+	else
+	result = result + ":" + String(minutes); 
+	
+	return result;
+}
+
+void ElementOn(boolean on)
+{
+	if (on)
+	{
+		elementOn = true;
+		cooling = false;
+		digitalWrite(5, HIGH);
+	}
+	else
+	{
+		elementOn = false;
+		digitalWrite(5, LOW);
+	}
+}
+
+void SwithOnIfUnderTemp(int temperature, int setpoint)
+{
+	if (temperature < setpoint)
+	{
+		if (cooling)
+		{
+			if (temperature < (setpoint - 6))
+			{
+				ElementOn(true);
+			}
+			else
+			{
+				ElementOn(false);
+			}
+		}
+		else
+		{
+			ElementOn(true);
+		}
+	}
+	else
+	{
+		if (elementOn)
+		{
+			cooling = true;
+		}
+		
+		ElementOn(false);
+	}
 }
 
 int GetTemperature(int channel)
 {
-//getting the voltage reading from the temperature sensor
+	//getting the voltage reading from the temperature sensor
 	int reading = analogRead(channel);
-// converting that reading to voltage, for 5v arduino
+	// converting that reading to voltage, for 5v arduino
 	float voltage = reading * 5 / 1.024;
-// convert mV to temperature
+	// convert mV to temperature
 	return voltage / 10 + 2;
 }
 
@@ -536,23 +582,23 @@ void Log(int geyserTemp, int ambientTemp, int solarRadiation)
 		myFile.print(tm.year());
 		myFile.print('/');
 		if (tm.month() < 10)
-			myFile.print("0");
+		myFile.print("0");
 		myFile.print(tm.month());
 		myFile.print('/');
 		if (tm.day() < 10)
-			myFile.print("0");
+		myFile.print("0");
 		myFile.print(tm.day());
 		myFile.print(' ');
 		if (tm.hour() < 10)
-			myFile.print("0");
+		myFile.print("0");
 		myFile.print(tm.hour());
 		myFile.print(':');
 		if (tm.minute() < 10)
-			myFile.print("0");
+		myFile.print("0");
 		myFile.print(tm.minute());
 		myFile.print(':');
 		if (tm.second() < 10)
-			myFile.print("0");
+		myFile.print("0");
 		myFile.print(tm.second());
 		myFile.print(",");
 		myFile.print(geyserTemp);
@@ -624,9 +670,9 @@ void checkButtons()
 			// if the button state has changed:
 			if (reading[i] != buttonState[i])
 			{
-                                
-                                lcd.setBacklight(HIGH);
-                                
+				
+				lcd.setBacklight(HIGH);
+				
 				buttonState[i] = reading[i];
 
 				menuTime = millis();
@@ -638,15 +684,15 @@ void checkButtons()
 				else if ((buttonState[0] == LOW) && button1down)
 				{
 					button1down = false;
-                                        if (overrideDetected)
-                                        {
-                                           overrideDetected = false;
-                                        }
-                                        else
-                                        {
-					  changeMenu = true;
-                                        }
-			        }
+					if (overrideDetected)
+					{
+						overrideDetected = false;
+					}
+					else
+					{
+						changeMenu = true;
+					}
+				}
 
 
 				if (buttonState[1] == HIGH)
@@ -674,9 +720,9 @@ void checkButtons()
 
 void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 {
-        DateTime tm = rtc.now();
-        
-        if (((millis() - readingTime) > 1000) || (readingTime > millis()))
+	DateTime tm = rtc.now();
+	
+	if (((millis() - readingTime) > 1000) || (readingTime > millis()))
 	{
 		// subtract the last reading:
 		temperature1Total = temperature1Total - temperature1[index];
@@ -694,8 +740,8 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 		index++;
 		// if we're at the end of the array...
 		if (index >= numReadings)
-			// ...wrap around to the beginning:
-			index = 0;
+		// ...wrap around to the beginning:
+		index = 0;
 
 		readingTime = millis();
 
@@ -710,7 +756,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 			DisplayStatus();
 		}
 	}
-                
+	
 	if (((millis() - menuTime) > menuTimeout) || (menuTime > millis()))
 	{
 		menuState = 0;
@@ -736,8 +782,8 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 	else if ((menuState > 0) && (changeSetting != 0))
 	{
 		ChangeSetting();
-        	DisplaySetting();
-                SaveSettings();
+		DisplaySetting();
+		SaveSettings();
 
 		changeSetting = 0;
 	}
@@ -745,41 +791,27 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 	checkButtons();
 
 	if (override)
-        {
-            elementOn = true;
-            digitalWrite(5, HIGH);
-        }
-        else
-        {
-            //if (cooling && (temperature1Average < (setpointTemperature - 6)))
-	    //{
-	//	elementOn = true;
-	//	cooling = false;
-	//	digitalWrite(5, HIGH);
-	  //  }
-	    //else if (!cooling && (temperature1Average < setpointTemperature))
-	    //{
-		//elementOn = true;
-		//cooling = false;
-		//digitalWrite(5, HIGH);
-	    //}
-            
-            
-            int timeNow = tm.hour()*60 + tm.minute();
+	{
+		SwitchOnIfUnderTemp(temperature1Average, setpointTemperature);
+	}
+	else
+	{
+		int timeNow = tm.hour()*60 + tm.minute();
 
-            if (temperature1Average >= setpointTemperature)
-	    {
-		elementOn = false;
-		cooling = true;
-		digitalWrite(5, LOW);
-	    }
-            else if ((P1On <= timeNow) && (P1Off > timeNow))// || ((P2On <= timeNow) && (P2Off > timeNow)))
-            {
-                elementOn = true;
-                cooling = false;
-                digitalWrite(5, HIGH);
-            }
-        }
+		if (((P1On <= timeNow) && (P1Off > timeNow)) || ((P2On <= timeNow) && (P2Off > timeNow)))
+		{
+			SwitchOnIfUnderTemp(temperature1Average, setpointTemperature);
+		}
+		else
+		{
+			if (elementOn)
+			{
+				cooling = true;
+			}
+			
+			ElementOn(false);
+		}
+	}
 
 	if ((tm.minute() % LoggingInterval == 0) && !logging)
 	{

@@ -369,20 +369,50 @@ void DisplaySetting()
 	}
 }
 
-void DisplayStatus()
+void DisplayStatus(boolean on, int temperature, int setpoint)
 {
-	lcd.setCursor(0, 1);
+	String txt;
 	if (override)
 	{
-		lcd.print("OVR ");
+		txt = "OVR ";
 	}
 	else if (elementOn)
 	{
-		lcd.print("ON  ");
+		txt = "ON  ";
 	}
 	else
 	{
-		lcd.print("OFF ");
+		txt = "OFF ";
+	}
+
+	static int blinkInterval = millis();
+	static boolean blinkOn = false;
+	
+	boolean blink = (on && (cooling || (temperature > setpoint)));
+	
+	lcd.setCursor(0, 1);
+	
+	if (blink)
+	{
+		if ((millis() - blinkInterval) > 800)
+		{
+			if (blinkOn)
+			{
+				lcd.print("    ");
+				blinkOn = false;
+			}
+			else
+			{
+				lcd.print(txt);
+                                blinkOn = true;
+			}
+		
+			blinkInterval = millis();
+		}
+	}
+	else
+	{
+		lcd.print(txt);
 	}
 }
 
@@ -529,7 +559,7 @@ void ElementOn(boolean on)
 	}
 }
 
-void SwitchOnIfUnderTemp(int temperature, int setpoint)
+boolean SwitchOnIfUnderTemp(int temperature, int setpoint)
 {
 	if (temperature < setpoint)
 	{
@@ -538,15 +568,18 @@ void SwitchOnIfUnderTemp(int temperature, int setpoint)
 			if (temperature < (setpoint - 6))
 			{
 				ElementOn(true);
+				return true;
 			}
 			else
 			{
 				ElementOn(false);
+				return false;
 			}
 		}
 		else
 		{
 			ElementOn(true);
+			return true;
 		}
 	}
 	else
@@ -557,6 +590,7 @@ void SwitchOnIfUnderTemp(int temperature, int setpoint)
 		}
 		
 		ElementOn(false);
+		return true;
 	}
 }
 
@@ -720,6 +754,8 @@ void checkButtons()
 
 void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 {
+	static boolean onIfUnderTemp = false;
+	
 	DateTime tm = rtc.now();
 	
 	if (((millis() - readingTime) > 1000) || (readingTime > millis()))
@@ -753,7 +789,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 		{
 			DisplayDateTime(1, tm);
 			DisplayTemperature();
-			DisplayStatus();
+			DisplayStatus(onIfUnderTemp, temperature1Average, setpointTemperature);
 		}
 	}
 	
@@ -792,7 +828,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 
 	if (override)
 	{
-		SwitchOnIfUnderTemp(temperature1Average, setpointTemperature);
+		onIfUnderTemp = SwitchOnIfUnderTemp(temperature1Average, setpointTemperature);
 	}
 	else
 	{
@@ -800,7 +836,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 
 		if (((P1On <= timeNow) && (P1Off > timeNow)) || ((P2On <= timeNow) && (P2Off > timeNow)))
 		{
-			SwitchOnIfUnderTemp(temperature1Average, setpointTemperature);
+			onIfUnderTemp = SwitchOnIfUnderTemp(temperature1Average, setpointTemperature);
 		}
 		else
 		{
@@ -810,6 +846,8 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 			}
 			
 			ElementOn(false);
+			
+			onIfUnderTemp = false;
 		}
 	}
 
@@ -840,3 +878,4 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 	}
 }
 /* ( THE END ) */
+

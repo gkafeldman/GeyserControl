@@ -369,7 +369,7 @@ void DisplaySetting()
 	}
 }
 
-void DisplayStatus(boolean on, int temperature, int setpoint)
+void DisplayStatus(int temperature, int setpoint)
 {
 	String txt;
 	if (override)
@@ -388,7 +388,7 @@ void DisplayStatus(boolean on, int temperature, int setpoint)
 	static int blinkInterval = millis();
 	static boolean blinkOn = false;
 	
-	boolean blink = (on && (cooling || (temperature > setpoint)));
+	boolean blink = (cooling || (temperature > setpoint));
 	
 	lcd.setCursor(0, 1);
 	
@@ -567,30 +567,26 @@ boolean SwitchOnIfUnderTemp(int temperature, int setpoint)
 		{
 			if (temperature < (setpoint - 6))
 			{
-				ElementOn(true);
 				return true;
 			}
 			else
 			{
-				ElementOn(false);
 				return false;
 			}
 		}
 		else
 		{
-			ElementOn(true);
 			return true;
 		}
 	}
 	else
 	{
-		if (elementOn)
+		if (temperature > (setpoint - 6))
 		{
 			cooling = true;
 		}
 		
-		ElementOn(false);
-		return true;
+		return false;
 	}
 }
 
@@ -789,7 +785,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 		{
 			DisplayDateTime(1, tm);
 			DisplayTemperature();
-			DisplayStatus(onIfUnderTemp, temperature1Average, setpointTemperature);
+			DisplayStatus(temperature1Average, setpointTemperature);
 		}
 	}
 	
@@ -828,7 +824,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 
 	if (override)
 	{
-		onIfUnderTemp = SwitchOnIfUnderTemp(temperature1Average, setpointTemperature);
+		ElementOn(SwitchOnIfUnderTemp(temperature1Average, setpointTemperature));
 	}
 	else
 	{
@@ -836,7 +832,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 
 		if (((P1On <= timeNow) && (P1Off > timeNow)) || ((P2On <= timeNow) && (P2Off > timeNow)))
 		{
-			onIfUnderTemp = SwitchOnIfUnderTemp(temperature1Average, setpointTemperature);
+			ElementOn(SwitchOnIfUnderTemp(temperature1Average, setpointTemperature));
 		}
 		else
 		{

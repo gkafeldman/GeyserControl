@@ -600,7 +600,7 @@ int GetTemperature(int channel)
 	return voltage / 10 + 2;
 }
 
-void Log(int geyserTemp, int ambientTemp, int solarRadiation)
+void Log(DateTime time, int geyserTemp, int ambientTemp, int solarRadiation)
 {
 	pinMode(10, OUTPUT);
 	myFile = SD.open("log.csv", FILE_WRITE);
@@ -609,27 +609,27 @@ void Log(int geyserTemp, int ambientTemp, int solarRadiation)
 
 	if (myFile)
 	{
-		myFile.print(tm.year());
+		myFile.print(time.year());
 		myFile.print('/');
-		if (tm.month() < 10)
+		if (time.month() < 10)
 		myFile.print("0");
-		myFile.print(tm.month());
+		myFile.print(time.month());
 		myFile.print('/');
-		if (tm.day() < 10)
+		if (time.day() < 10)
 		myFile.print("0");
-		myFile.print(tm.day());
+		myFile.print(time.day());
 		myFile.print(' ');
-		if (tm.hour() < 10)
+		if (time.hour() < 10)
 		myFile.print("0");
-		myFile.print(tm.hour());
+		myFile.print(time.hour());
 		myFile.print(':');
-		if (tm.minute() < 10)
+		if (time.minute() < 10)
 		myFile.print("0");
-		myFile.print(tm.minute());
+		myFile.print(time.minute());
 		myFile.print(':');
-		if (tm.second() < 10)
+		if (time.second() < 10)
 		myFile.print("0");
-		myFile.print(tm.second());
+		myFile.print(time.second());
 		myFile.print(",");
 		myFile.print(geyserTemp);
 		myFile.print(",");
@@ -852,7 +852,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 		if (menuState < 3) // not setting the time
 		{
 			logging = true;
-			Log(temperature1Average, temperature2Average, sunlightAverage);
+			Log(tm, temperature1Average, temperature2Average, sunlightAverage);
 		}
 	}
 	if (!(tm.minute() % LoggingInterval == 0) && logging)

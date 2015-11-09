@@ -657,18 +657,10 @@ void Log(DateTime time, int geyserTemp, int ambientTemp, int solarRadiation)
 	delay(1500);
 }
 
-void myDelay(unsigned long duration)
+boolean checkButtons()
 {
-	unsigned long start = millis();
-
-	while (millis() - start <= duration)
-	{
-		checkButtons();  // check the buttons
-	}
-}
-
-void checkButtons()
-{
+	boolean result = false;
+	
 	int  reading[NUMBUTTONS];
 
 	for (byte i = 0; i < NUMBUTTONS; i++)
@@ -701,7 +693,7 @@ void checkButtons()
 			if (reading[i] != buttonState[i])
 			{
 				
-				lcd.setBacklight(HIGH);
+				result = true;
 				
 				buttonState[i] = reading[i];
 
@@ -746,11 +738,14 @@ void checkButtons()
 		// it'll be the lastButtonState:
 		lastButtonState[i] = reading[i];
 	}
+	
+	return result;
 }
 
 void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 {
 	static boolean onIfUnderTemp = false;
+	static boolean backlight = true;
 	
 	DateTime tm = rtc.now();
 	
@@ -797,19 +792,27 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 	if (bLightAutoOff && (((millis() - bLightTime) > bLightTimeout) || (bLightTime > millis())))
 	{
 		lcd.setBacklight(LOW);
+		backlight = false;
 	}
 
 	if (changeMenu)
 	{
 		changeMenu = false;
-
-		menuState++;
-		DisplayMenuItem();
-		DisplaySetting();
-		if (menuState > 15)
-		{
+		
+                if (!backlight)
+                {
+		  backlight = true;
+                }
+                else
+                {
+		  menuState++;
+		  DisplayMenuItem();
+		  DisplaySetting();
+		  if (menuState > 15)
+		  {
 			menuState = 0;
-		}
+		  }
+                }
 	}
 	else if ((menuState > 0) && (changeSetting != 0))
 	{
@@ -820,7 +823,10 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 		changeSetting = 0;
 	}
 
-	checkButtons();
+	if (checkButtons())
+	{
+		lcd.setBacklight(HIGH);
+	}
 
 	if (override)
 	{

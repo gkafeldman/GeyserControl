@@ -150,7 +150,9 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 		// Backlight control:
 		bLightAutoOff = EEPROM.read(bLightAddress) == 1;
 		P1On = EEPROM.read(P1OnAddress);
-		P1Off = EEPROM.read(P1Off);
+		P1Off = EEPROM.read(P1OffAddress);
+		P2On = EEPROM.read(P2OnAddress);
+		P2Off = EEPROM.read(P2OffAddress);
 	}
 	else
 	{
@@ -159,6 +161,10 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 		EEPROM.write(schemaAddress, schema);
 		EEPROM.write(spTempAddress, setpointTemperature);
 		EEPROM.write(bLightAddress, bLightAutoOff);
+		EEPROM.write(P1OnAddress, P1On);
+		EEPROM.write(P1OffAddress, P1Off);
+		EEPROM.write(P2OnAddress, P2On);
+		EEPROM.write(P2OffAddress, P2Off);
 	}
 
 	InitialiseSdCard();
@@ -419,28 +425,27 @@ void DisplayStatus(int temperature, int setpoint)
 void ChangeSetting()
 {
 	if (menuState == 1)
-	ChangeSetPointTemperature(changeSetting);
+		ChangeSetPointTemperature(changeSetting);
 	else if (menuState == 2)
-	bLightAutoOff = !bLightAutoOff;
+		bLightAutoOff = !bLightAutoOff;
 	else if ((menuState >= 3) && (menuState < 8))
-	ChangeTime(changeSetting);
+		ChangeTime(changeSetting);
 	else if (menuState == 8)
-	P1On = ChangePeriodTime(P1On, changeSetting*60); // changing hours
+		P1On = ChangePeriodTime(P1On, changeSetting*60); // changing hours
 	else if (menuState == 9)
-	P1On = ChangePeriodTime(P1On, changeSetting);    // changing minutes
+		P1On = ChangePeriodTime(P1On, changeSetting);    // changing minutes
 	else if (menuState == 10)
-	P1Off = ChangePeriodTime(P1Off, changeSetting*60);
+		P1Off = ChangePeriodTime(P1Off, changeSetting*60);
 	else if (menuState == 11)
-	P1Off = ChangePeriodTime(P1Off, changeSetting);
+		P1Off = ChangePeriodTime(P1Off, changeSetting);
 	else if (menuState == 12)
-	P2On = ChangePeriodTime(P2On, changeSetting*60);
+		P2On = ChangePeriodTime(P2On, changeSetting*60);
 	else if (menuState == 13)
-	P2On = ChangePeriodTime(P2On, changeSetting);
+		P2On = ChangePeriodTime(P2On, changeSetting);
 	else if (menuState == 14)
-	P2Off = ChangePeriodTime(P2Off, changeSetting*60);
+		P2Off = ChangePeriodTime(P2Off, changeSetting*60);
 	else if (menuState == 15)
-	P2Off = ChangePeriodTime(P2Off, changeSetting);
-
+		P2Off = ChangePeriodTime(P2Off, changeSetting);
 }
 
 void SaveSettings()
@@ -519,11 +524,11 @@ int ChangePeriodTime(int oldTime, int changeValue)
 	int newValue = oldTime + changeValue;
 
 	if (newValue >= 1440)
-	return newValue - 1440;
+		return newValue - 1440;
 	else if (newValue <= -1)
-	return 1440 + newValue;
+		return 1440 + newValue;
 	else
-	return newValue;  
+		return newValue;  
 }
 
 String GetTime(int time)
@@ -842,7 +847,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 		}
 		else
 		{
-			if (elementOn)
+			if (elementOn && (temperature1Average > (setpointTemperature - 6)))
 			{
 				cooling = true;
 			}

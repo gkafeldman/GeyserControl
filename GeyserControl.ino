@@ -95,10 +95,14 @@ long overrideTime = 1600;
 const int schemaAddress = 3;
 const int spTempAddress = 0;
 const int bLightAddress = 1;
-const int P1OnAddress = 4;
-const int P1OffAddress = 5;
-const int P2OnAddress = 6;
-const int P2OffAddress = 7;
+const int P1OnAddressRight = 4;
+const int P1OnAddressLeft = 5;
+const int P1OffAddressRight = 6;
+const int P1OffAddressLeft = 7;
+const int P2OnAddressRight = 8;
+const int P2OnAddressLeft = 9;
+const int P2OffAddressRight = 10;
+const int P2OffAddressLeft = 11;
 
 // BackLight control:
 #define bLightTimeout 20000
@@ -149,10 +153,18 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 		setpointTemperature = EEPROM.read(spTempAddress);
 		// Backlight control:
 		bLightAutoOff = EEPROM.read(bLightAddress) == 1;
-		P1On = EEPROM.read(P1OnAddress);
-		P1Off = EEPROM.read(P1OffAddress);
-		P2On = EEPROM.read(P2OnAddress);
-		P2Off = EEPROM.read(P2OffAddress);
+		
+		int leftBits = EEPROM.read(P1OnAddressLeft);
+		P1On = (leftBits << 8) | EEPROM.read(P1OnAddressRight);
+		
+		leftBits = EEPROM.read(P1OffAddressLeft);
+		P1Off = (leftBits << 8) | EEPROM.read(P1OffAddressRight);
+		
+		leftBits = EEPROM.read(P2OnAddressLeft);
+		P2On = (leftBits << 8) | EEPROM.read(P2OnAddressRight);
+
+		leftBits = EEPROM.read(P2OffAddressLeft);
+		P2Off = (leftBits << 8) | EEPROM.read(P2OffAddressRight);
 	}
 	else
 	{
@@ -161,10 +173,18 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 		EEPROM.write(schemaAddress, schema);
 		EEPROM.write(spTempAddress, setpointTemperature);
 		EEPROM.write(bLightAddress, bLightAutoOff);
-		EEPROM.write(P1OnAddress, P1On);
-		EEPROM.write(P1OffAddress, P1Off);
-		EEPROM.write(P2OnAddress, P2On);
-		EEPROM.write(P2OffAddress, P2Off);
+		
+		EEPROM.write(P1OnAddressLeft, byte(P1On >> 8));
+		EEPROM.write(P1OnAddressRight, byte(P1On));
+
+		EEPROM.write(P1OffAddressLeft, byte(P1Off >> 8));
+		EEPROM.write(P1OffAddressRight, byte(P1Off));
+
+		EEPROM.write(P2OnAddressLeft, byte(P2On >> 8));
+		EEPROM.write(P2OnAddressRight, byte(P2On));
+
+		EEPROM.write(P2OffAddressLeft, byte(P2Off >> 8));
+		EEPROM.write(P2OffAddressRight, byte(P2Off));
 	}
 
 	InitialiseSdCard();
@@ -452,10 +472,17 @@ void SaveSettings()
 {
 	EEPROM.write(spTempAddress, setpointTemperature);
 	EEPROM.write(bLightAddress, (int)bLightAutoOff);
-	EEPROM.write(P1OnAddress, P1On);
-	EEPROM.write(P1OffAddress, P1Off);
-	EEPROM.write(P2OnAddress, P2On);
-	EEPROM.write(P2OffAddress, P2Off);
+	EEPROM.write(P1OnAddressLeft, byte(P1On >> 8));
+	EEPROM.write(P1OnAddressRight, byte(P1On));
+
+	EEPROM.write(P1OffAddressLeft, byte(P1Off >> 8));
+	EEPROM.write(P1OffAddressRight, byte(P1Off));
+
+	EEPROM.write(P2OnAddressLeft, byte(P2On >> 8));
+	EEPROM.write(P2OnAddressRight, byte(P2On));
+
+	EEPROM.write(P2OffAddressLeft, byte(P2Off >> 8));
+	EEPROM.write(P2OffAddressRight, byte(P2Off));
 }
 
 void ChangeSetPointTemperature(int changeValue)

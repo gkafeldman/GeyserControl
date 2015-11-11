@@ -156,15 +156,28 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 		
 		int leftBits = EEPROM.read(P1OnAddressLeft);
 		P1On = (leftBits << 8) | EEPROM.read(P1OnAddressRight);
+
+                if ((int(P1On) > 1440) || (int(P1On) < 0))
+                  P1On = 0;
 		
 		leftBits = EEPROM.read(P1OffAddressLeft);
 		P1Off = (leftBits << 8) | EEPROM.read(P1OffAddressRight);
 		
+                if ((int(P1Off) > 1440) || (int(P1Off) < 0))
+                  P1Off = 0;
+		
 		leftBits = EEPROM.read(P2OnAddressLeft);
 		P2On = (leftBits << 8) | EEPROM.read(P2OnAddressRight);
 
+                if ((int(P2On) > 1440) || (int(P2On) < 0))
+                  P2On = 0;
+		
 		leftBits = EEPROM.read(P2OffAddressLeft);
 		P2Off = (leftBits << 8) | EEPROM.read(P2OffAddressRight);
+
+                if ((int(P2Off) > 1440) || (int(P2Off) < 0))
+                  P2Off = 0;
+		
 	}
 	else
 	{
@@ -472,6 +485,7 @@ void SaveSettings()
 {
 	EEPROM.write(spTempAddress, setpointTemperature);
 	EEPROM.write(bLightAddress, (int)bLightAutoOff);
+
 	EEPROM.write(P1OnAddressLeft, byte(P1On >> 8));
 	EEPROM.write(P1OnAddressRight, byte(P1On));
 
